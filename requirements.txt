@@ -2,3 +2,4 @@ selenium-wire
 fake-useragent
 loguru
 asyncio
+undetected_chromedriver
