@@ -1,0 +1,4 @@
+selenium-wire
+fake-useragent
+loguru
+asyncio

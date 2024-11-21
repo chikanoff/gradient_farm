@@ -1,0 +1,5 @@
+{
+    "accounts_file": "users.txt",
+    "proxies_file": "proxy.txt",
+    "session_interval": 150
+}
