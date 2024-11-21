@@ -2,15 +2,14 @@ import sys
 import json
 import asyncio
 import time
-import tempfile
 import random
 from fake_useragent import UserAgent
 from loguru import logger
 from seleniumwire import webdriver
+from undetected_chromedriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
 
 logger.remove()
 logger.add(sys.stdout, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
@@ -29,9 +28,13 @@ CHROMEDRIVER_PATH = './chromedriver-linux64/chromedriver'
 def load_data(filename):
     with open(filename, 'r') as f:
         return [line.strip() for line in f]
+    
+def modify_headers(request):
+    request.headers['Accept-Language'] = 'en-US,en;q=0.9'
+    request.headers['Accept-Encoding'] = 'gzip, deflate, br'
 
 def setup_driver(proxy):
-    chrome_options = Options()
+    chrome_options = ChromeOptions()
 
     seleniumwire_options = {
         "proxy": {
@@ -66,14 +69,18 @@ def setup_driver(proxy):
     chrome_options.add_argument('--disable-accelerated-jpeg-decoding')
     chrome_options.add_argument('--disable-accelerated-video-decode')
     chrome_options.add_argument('--disable-gpu-sandbox')
+    chrome_options.add_argument('--disable-webrtc')
 
     print(f"Loading extension from: {EXTENSION_PATH}")
     chrome_options.add_extension(EXTENSION_PATH)
 
-
-    user_data_dir = tempfile.mkdtemp()
-
     driver = webdriver.Chrome(seleniumwire_options=seleniumwire_options, options=chrome_options)
+
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    driver.request_interceptor = modify_headers
+    driver.execute_script("""
+        Object.defineProperty(navigator, 'mediaDevices', {get: () => undefined});
+    """)
 
     return driver
     
